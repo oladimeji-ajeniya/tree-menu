@@ -46,7 +46,7 @@ const AddMenu = ({ onAdd }) => {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full sm:w-1/2 px-3 py-2 bg-gray-100 rounded"
+            className="w-full px-3 py-2 bg-gray-100 rounded"
             required
           />
         </div>
@@ -56,7 +56,7 @@ const AddMenu = ({ onAdd }) => {
           <select
             value={parentId}
             onChange={(e) => setParentId(e.target.value)}
-            className="w-full sm:w-1/2 px-3 py-2 bg-gray-100 rounded"
+            className="w-full px-3 py-2 bg-gray-100 rounded"
           >
             <option value="">None</option>
             {menus.map((menu) => (
@@ -73,14 +73,14 @@ const AddMenu = ({ onAdd }) => {
             type="number"
             value={order}
             onChange={(e) => setOrder(parseInt(e.target.value, 10))}
-            className="w-full sm:w-1/2 px-3 py-2 bg-gray-100 rounded"
+            className="w-full px-3 py-2 bg-gray-100 rounded"
             required
           />
         </div>
 
         <button
           type="submit"
-          className="w-full sm:w-1/2 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600"
+          className="w-full py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600"
         >
           Add Menu
         </button>

@@ -1,56 +1,29 @@
 import React, { useState, useEffect } from "react";
-import api from "../services/api";
 
-const UpdateMenuForm = ({ menuId, onUpdate }) => {
-  const [uuid, setUuid] = useState("");
+const UpdateMenuForm = ({ initialData = {}, onSave }) => {
+  console.log("initialData", initialData);
+  const [parentId, setParentId] = useState(initialData.id || "");
+  const [parentName, setParentName] = useState(initialData.label || "");
+
   const [name, setName] = useState("");
-  const [parentId, setParentId] = useState("");
-  const [order, setOrder] = useState(0);
-  const [menus, setMenus] = useState([]);
+  const [slug, setSlug] = useState("");
+  const [dept, setDept] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    const fetchMenuData = async () => {
-      try {
-        const response = await api.get(`/menus/${menuId}`);
-        const menu = response.data;
-        setUuid(menu.uuid);
-        setName(menu.name);
-        setParentId(menu.parent_id || "");
-        setOrder(menu.order || 0);
-      } catch (error) {
-        console.error("Error fetching menu data", error);
-        setErrorMessage("Failed to fetch menu data.");
-      }
-    };
-
-    const fetchMenus = async () => {
-      try {
-        const response = await api.get("/menus");
-        setMenus(response.data);
-      } catch (error) {
-        console.error("Error fetching menus", error);
-        setErrorMessage("Failed to fetch menus.");
-      }
-    };
-
-    fetchMenuData();
-    fetchMenus();
-  }, [menuId]);
+    setParentId(initialData.id || "");
+    setParentName(initialData.label || "");
+  }, [initialData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const updatedMenu = { name, uuid, parent_id: parentId, order };
-      await api.put(`/menus/${menuId}`, updatedMenu);
-      setSuccessMessage("Menu updated successfully!");
-      setErrorMessage("");
-      if (onUpdate) onUpdate();
+      await onSave({ name, slug, parent_id: parentId, order: dept });
+      setSuccessMessage("Menu saved successfully!");
     } catch (error) {
-      console.error("Error updating menu", error);
-      setSuccessMessage("");
-      setErrorMessage("Failed to update menu.");
+      console.error("Error saving menu", error);
+      setErrorMessage("Failed to save menu.");
     }
   };
 
@@ -58,55 +31,50 @@ const UpdateMenuForm = ({ menuId, onUpdate }) => {
     <div className="container mx-auto w-full">
       <form onSubmit={handleSubmit} className="bg-white lg:p-4 xl:p-4">
         <div className="mb-4">
-          <label className="block text-gray-700">MenuId</label>
+          <label className="block text-gray-700">Name</label>
           <input
-            value={uuid}
-            onChange={(e) => setUuid(e.target.value)}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             className="w-full px-3 py-2 bg-gray-100 rounded"
             required
-            disabled
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-gray-700">Slug</label>
+          <input
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
+            className="w-full px-3 py-2 bg-gray-100 rounded"
+            required
           />
         </div>
 
         <div className="mb-4">
           <label className="block text-gray-700">Depth</label>
           <input
+            value={dept}
+            onChange={(e) => setDept(e.target.value)}
             type="number"
-            value={order}
-            onChange={(e) => setOrder(parseInt(e.target.value, 10))}
-            className="w-full sm:w-1/2 px-3 py-2 bg-gray-200 rounded"
+            className="w-full px-3 py-2 bg-gray-200 rounded"
             required
           />
         </div>
 
         <div className="mb-4">
-          <label className="block text-gray-700">ParentData</label>
-          <select
-            value={parentId}
-            onChange={(e) => setParentId(e.target.value)}
-            className="w-full sm:w-1/2 px-3 py-2 bg-gray-100 rounded"
-          >
-            <option value="">None</option>
-            {menus.map((menu) => (
-              <option key={menu.id} value={menu.id}>
-                {menu.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-gray-700">Name</label>
+          <label className="block text-gray-700">Parent</label>
           <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full sm:w-1/2 px-3 py-2 bg-gray-100 rounded"
+            value={parentName}
+            onChange={(e) => setParentName(e.target.value)}
+            className="w-full px-3 py-2 bg-gray-200 rounded"
             required
+            disabled
           />
         </div>
+
         <button
           type="submit"
-          className="w-full sm:w-1/2 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600"
+          className="w-full py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600"
         >
           Update
         </button>

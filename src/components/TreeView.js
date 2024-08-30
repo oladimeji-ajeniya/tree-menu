@@ -10,18 +10,18 @@ import MenuForm from "./MenuForm";
 import AddMenu from "./AddForm";
 import UpdateMenuForm from "./UpdateForm";
 import Breadcrumb from "./Breadcrumb";
+import CustomDropdown from "./CustomDropdown";
 
 const TreeView = () => {
   const [expandedNodes, setExpandedNodes] = useState(new Set());
   const [hoveredNode, setHoveredNode] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [showFormToCreateChild, setFormToCreateChild] = useState(false);
-  const [showToAddNew, setShowToAddNew] = useState(false);
-
   const [selectedNode, setSelectedNode] = useState(null);
   const [systemManagement, setSystemManagement] = useState(null);
   const [treeData, setTreeData] = useState([]);
   const [isTreeVisible, setIsTreeVisible] = useState(false);
+  const [activeForm, setActiveForm] = useState(null);
+
+  const options = systemManagement ? [systemManagement] : [];
 
   const fetchSystemManagement = async () => {
     try {
@@ -53,7 +53,7 @@ const TreeView = () => {
   };
 
   const handleSelectChange = (event) => {
-    const selectedMenuId = event.target.value;
+    const selectedMenuId = event.id;
     if (selectedMenuId && selectedMenuId !== "new-menu") {
       fetchData(selectedMenuId);
     } else {
@@ -91,33 +91,57 @@ const TreeView = () => {
   };
 
   const handleNodeClick = (node) => {
-    console.log("node", node);
+    setActiveForm({ type: "edit", data: node });
     setSelectedNode(node);
-    setShowForm(true);
   };
 
-  const handleCreateNewChildNode = () => {
-    console.log("handleCreateNewChildNode");
-    setFormToCreateChild(true);
+  const handleCreateNewChildNode = (node) => {
+    setActiveForm({ type: "createChild", data: node });
+    setSelectedNode(node);
   };
 
   const handleCreateNewNode = () => {
-    console.log("handleCreateNewNode");
-    setShowToAddNew(true);
+    setActiveForm({ type: "addNew" });
+    setSelectedNode(null);
   };
 
   const handleSave = async (formData) => {
     try {
-      console.log("selectedNode", selectedNode);
-      if (selectedNode) {
-        await api.post("/menus", formData);
-        if (selectedNode) {
-          await fetchData(selectedNode.id);
-        }
+      const response = await api.post("/menus", formData);
+      if (response.data.id) {
+        await fetchData(selectedNode?.id || response.data.id);
       }
-    } catch (error) {}
-    setShowForm(false);
-    setSelectedNode(null);
+    } catch (error) {
+      console.error(error);
+    }
+    setActiveForm(null);
+  };
+
+  const renderActiveForm = () => {
+    if (!activeForm) return null;
+
+    switch (activeForm.type) {
+      case "edit":
+        return (
+          <div className="w-full mt-4 md:p-4 lg:w-2/5 xl:w-2/5 lg:ml-14 xl:ml-14">
+            <MenuForm initialData={activeForm.data} onSave={handleSave} />
+          </div>
+        );
+      case "createChild":
+        return (
+          <div className="w-full mt-4 md:p-4 lg:w-2/5 xl:w-2/5 lg:ml-14 xl:ml-14">
+            <UpdateMenuForm initialData={activeForm.data} onSave={handleSave} />
+          </div>
+        );
+      case "addNew":
+        return (
+          <div className="w-full mt-4 md:p-4 lg:w-2/5 xl:w-2/5 lg:ml-14 xl:ml-14">
+            <AddMenu onSave={handleSave} />
+          </div>
+        );
+      default:
+        return null;
+    }
   };
 
   const TreeNode = ({ node, level = 0 }) => {
@@ -208,41 +232,11 @@ const TreeView = () => {
 
           <div className="mb-4 sm:p-3 md:w-2/5 lg:w-2/5 xl:w-2/5">
             <label className="block text-gray-600 mb-2">Menu</label>
-            <div className="relative">
-              <select
-                className="appearance-none w-full px-4 py-3 bg-gray-100 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onChange={handleSelectChange}
-                defaultValue=""
-              >
-                <option value="" disabled>
-                  Select a menu
-                </option>
-                {systemManagement ? (
-                  <option value={systemManagement.id}>
-                    {systemManagement.name}
-                  </option>
-                ) : (
-                  <option>Loading...</option>
-                )}
-                <option onClick={() => handleCreateNewNode()} value="new-menu">
-                  Create New Menu
-                </option>
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-gray-500"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 3a1 1 0 00-.707.293l-6 6a1 1 0 001.414 1.414L10 5.414l5.293 5.293a1 1 0 001.414-1.414l-6-6A1 1 0 0010 3z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-            </div>
+            <CustomDropdown
+              options={options}
+              onSelect={handleSelectChange}
+              onCreateNew={handleCreateNewNode}
+            />
           </div>
         </div>
       </div>
@@ -278,23 +272,7 @@ const TreeView = () => {
             </div>
           </div>
 
-          {showForm && (
-            <div className="w-full mt-4 md:p-4 lg:w-2/5 xl:w-2/5 lg:ml-14 xl:ml-14">
-              <MenuForm initialData={selectedNode} onSave={handleSave} />
-            </div>
-          )}
-
-          {/* {showFormToCreateChild && (
-            <div className="w-full mt-4 md:p-4 lg:w-2/5 xl:w-2/5 lg:ml-14 xl:ml-14">
-              <UpdateMenuForm initialData={selectedNode} onSave={handleSave} />
-            </div>
-          )}
-
-          {showToAddNew && (
-            <div className="w-full mt-4 md:p-4 lg:w-2/5 xl:w-2/5 lg:ml-14 xl:ml-14">
-              <AddMenu onSave={handleSave} />
-            </div>
-          )} */}
+          {renderActiveForm()}
         </div>
       )}
     </div>
