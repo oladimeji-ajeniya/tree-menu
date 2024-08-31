@@ -1,8 +1,20 @@
-import React, { useState } from "react";
+import React from "react";
+import { useRecoilState, atom } from "recoil";
+
+const isOpenState = atom({
+  key: "isOpenState",
+  default: false,
+});
+
+const selectedOptionState = atom({
+  key: "selectedOptionState",
+  default: null,
+});
 
 const CustomDropdown = ({ options, onSelect, onCreateNew }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState("");
+  const [isOpen, setIsOpen] = useRecoilState(isOpenState);
+  const [selectedOption, setSelectedOption] =
+    useRecoilState(selectedOptionState);
 
   const handleOptionClick = (option) => {
     setSelectedOption(option);
@@ -23,12 +35,12 @@ const CustomDropdown = ({ options, onSelect, onCreateNew }) => {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-3 bg-gray-100 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-4 py-3 bg-gray-100 text-gray-900 rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
-        {selectedOption ? selectedOption.name : "Select a menu"}
+        <span>{selectedOption ? selectedOption.name : "Select a menu"}</span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5 inline-block ml-2 text-gray-500"
+          className="h-5 w-5 text-gray-500"
           viewBox="0 0 20 20"
           fill="currentColor"
         >
@@ -41,7 +53,7 @@ const CustomDropdown = ({ options, onSelect, onCreateNew }) => {
       </button>
       {isOpen && (
         <div className="absolute mt-2 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10">
-          <ul>
+          <ul className="max-h-60 overflow-y-auto">
             {options.length > 0 ? (
               options.map((option) => (
                 <li
@@ -53,7 +65,7 @@ const CustomDropdown = ({ options, onSelect, onCreateNew }) => {
                 </li>
               ))
             ) : (
-              <li className="px-4 py-2 text-gray-500">Loading...</li>
+              <li className="px-4 py-2 text-gray-500">No options available</li>
             )}
           </ul>
           <div className="border-t border-gray-300">

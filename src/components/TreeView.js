@@ -21,32 +21,25 @@ const TreeView = () => {
   const [isTreeVisible, setIsTreeVisible] = useState(false);
   const [activeForm, setActiveForm] = useState(null);
 
-  const options = systemManagement ? [systemManagement] : [];
-
-  const fetchSystemManagement = async () => {
-    try {
-      const response = await api.get("/menus/top-level");
-      setSystemManagement(response.data[0]);
-    } catch (error) {
-      console.error("Error fetching System Management data", error);
-    }
-  };
-
   useEffect(() => {
+    const fetchSystemManagement = async () => {
+      try {
+        const response = await api.get("/menus/top-level");
+        setSystemManagement(response.data);
+      } catch (error) {
+        console.error("Error fetching System Management data", error);
+      }
+    };
     fetchSystemManagement();
   }, []);
 
   const fetchData = async (menuId) => {
     try {
       const response = await api.get(`/menus/${menuId}`);
-      if (response.data) {
-        setTreeData(response.data);
-        setIsTreeVisible(true);
-      } else {
-        setTreeData([]);
-        setIsTreeVisible(false);
-      }
+      setTreeData(response.data || []);
+      setIsTreeVisible(Boolean(response.data));
     } catch (error) {
+      console.error("Error fetching tree data", error);
       setTreeData([]);
       setIsTreeVisible(false);
     }
@@ -63,27 +56,28 @@ const TreeView = () => {
   };
 
   const handleToggle = (label) => {
-    const newExpandedNodes = new Set(expandedNodes);
-    if (newExpandedNodes.has(label)) {
-      newExpandedNodes.delete(label);
-    } else {
-      newExpandedNodes.add(label);
-    }
-    setExpandedNodes(newExpandedNodes);
+    setExpandedNodes((prevNodes) => {
+      const newNodes = new Set(prevNodes);
+      if (newNodes.has(label)) {
+        newNodes.delete(label);
+      } else {
+        newNodes.add(label);
+      }
+      return newNodes;
+    });
   };
 
   const expandAll = () => {
-    const allLabels = new Set();
-    const getLabels = (nodes) => {
-      nodes.forEach((node) => {
-        allLabels.add(node.label);
+    const collectLabels = (nodes) => {
+      return nodes.reduce((acc, node) => {
+        acc.add(node.label);
         if (node.children) {
-          getLabels(node.children);
+          collectLabels(node.children).forEach((label) => acc.add(label));
         }
-      });
+        return acc;
+      }, new Set());
     };
-    getLabels(treeData);
-    setExpandedNodes(allLabels);
+    setExpandedNodes(collectLabels(treeData));
   };
 
   const collapseAll = () => {
@@ -109,10 +103,11 @@ const TreeView = () => {
     try {
       const response = await api.post("/menus", formData);
       if (response.data.id) {
-        await fetchData(selectedNode?.id || response.data.id);
+        const response = await api.get("/menus/top-level");
+        setSystemManagement(response.data);
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error saving data", error);
     }
     setActiveForm(null);
   };
@@ -120,28 +115,22 @@ const TreeView = () => {
   const renderActiveForm = () => {
     if (!activeForm) return null;
 
-    switch (activeForm.type) {
-      case "edit":
-        return (
-          <div className="w-full mt-4 md:p-4 lg:w-2/5 xl:w-2/5 lg:ml-14 xl:ml-14">
-            <MenuForm initialData={activeForm.data} onSave={handleSave} />
-          </div>
-        );
-      case "createChild":
-        return (
-          <div className="w-full mt-4 md:p-4 lg:w-2/5 xl:w-2/5 lg:ml-14 xl:ml-14">
-            <UpdateMenuForm initialData={activeForm.data} onSave={handleSave} />
-          </div>
-        );
-      case "addNew":
-        return (
-          <div className="w-full mt-4 md:p-4 lg:w-2/5 xl:w-2/5 lg:ml-14 xl:ml-14">
-            <AddMenu onSave={handleSave} />
-          </div>
-        );
-      default:
-        return null;
-    }
+    const formProps = {
+      onSave: handleSave,
+      initialData: activeForm.data,
+    };
+
+    const formComponents = {
+      edit: <MenuForm {...formProps} />,
+      createChild: <UpdateMenuForm {...formProps} />,
+      addNew: <AddMenu onSave={handleSave} />,
+    };
+
+    return (
+      <div className="w-full mt-4 md:p-4 lg:w-2/5 xl:w-2/5 lg:ml-14 xl:ml-14">
+        {formComponents[activeForm.type]}
+      </div>
+    );
   };
 
   const TreeNode = ({ node, level = 0 }) => {
@@ -205,11 +194,11 @@ const TreeView = () => {
   };
 
   return (
-    <div className="md:p-4 lg:p-6 xl:p-8 flex-row lg:flex-row w-full">
+    <div className="md:p-4 lg:p-2 xl:p-2 flex-row lg:flex-row w-full">
       <div className="w-full">
         <Breadcrumb />
         <div className="my-4">
-          <div className="flex items-center my-4">
+          <div className="flex items-center my-4 lg:my-0">
             <div className="bg-blue-500 p-3 rounded-full">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -225,7 +214,7 @@ const TreeView = () => {
                 />
               </svg>
             </div>
-            <h1 className="ml-2 md:p-4 lg:p-6 xl:p-8 text-2xl font-bold text-gray-900">
+            <h1 className=" md:p-4 ml-1 lg:p-6 xl:p-2 text-2xl font-bold text-gray-900">
               Menus
             </h1>
           </div>
@@ -233,7 +222,7 @@ const TreeView = () => {
           <div className="mb-4 sm:p-3 md:w-2/5 lg:w-2/5 xl:w-2/5">
             <label className="block text-gray-600 mb-2">Menu</label>
             <CustomDropdown
-              options={options}
+              options={systemManagement}
               onSelect={handleSelectChange}
               onCreateNew={handleCreateNewNode}
             />

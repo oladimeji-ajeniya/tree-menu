@@ -3,7 +3,6 @@ import React from "react";
 const Breadcrumb = () => {
   return (
     <div className="flex items-center space-x-2">
-      {/* Folder Icon */}
       <div className="text-gray-400">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -21,10 +20,7 @@ const Breadcrumb = () => {
         </svg>
       </div>
 
-      {/* Slash */}
       <span className="text-gray-400">/</span>
-
-      {/* Menu Text */}
       <span className="text-gray-800 font-medium">Menus</span>
     </div>
   );

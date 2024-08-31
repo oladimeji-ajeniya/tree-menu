@@ -1,13 +1,45 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
+import { useRecoilState, atom } from "recoil";
 import api from "../services/api";
 
+const uuidState = atom({
+  key: "uuidState",
+  default: "",
+});
+
+const nameStates = atom({
+  key: "nameStates",
+  default: "",
+});
+
+const parentIdStates = atom({
+  key: "parentIdStates",
+  default: "",
+});
+
+const orderState = atom({
+  key: "orderState",
+  default: 0,
+});
+
+const menusState = atom({
+  key: "menusState",
+  default: [],
+});
+
+const successMessageStates = atom({
+  key: "successMessageStates",
+  default: "",
+});
+
 const MenuForm = ({ initialData = {}, onSave }) => {
-  const [uuid, setUuid] = useState(initialData.uuid || "");
-  const [name, setName] = useState(initialData.label || "");
-  const [parentId, setParentId] = useState(initialData.parent_id || "");
-  const [order, setOrder] = useState(initialData.order || 0);
-  const [menus, setMenus] = useState([]);
-  const [successMessage, setSuccessMessage] = useState("");
+  const [uuid, setUuid] = useRecoilState(uuidState);
+  const [name, setName] = useRecoilState(nameStates);
+  const [parentId, setParentId] = useRecoilState(parentIdStates);
+  const [order, setOrder] = useRecoilState(orderState);
+  const [menus, setMenus] = useRecoilState(menusState);
+  const [successMessage, setSuccessMessage] =
+    useRecoilState(successMessageStates);
 
   useEffect(() => {
     const fetchMenus = async () => {
@@ -20,14 +52,14 @@ const MenuForm = ({ initialData = {}, onSave }) => {
     };
 
     fetchMenus();
-  }, []);
+  }, [setMenus]);
 
   useEffect(() => {
     setUuid(initialData.uuid || "");
     setName(initialData.label || "");
     setParentId(initialData.parent_id || "");
     setOrder(initialData.order || 0);
-  }, [initialData]);
+  }, [initialData, setUuid, setName, setParentId, setOrder]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -1,29 +1,66 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
+import { useRecoilState, atom } from "recoil";
+
+const parentIdState = atom({
+  key: "parentIdState",
+  default: "",
+});
+
+const parentNameState = atom({
+  key: "parentNameState",
+  default: "",
+});
+
+const nameState = atom({
+  key: "nameState",
+  default: "",
+});
+
+const slugState = atom({
+  key: "slugState",
+  default: "",
+});
+
+const deptState = atom({
+  key: "deptState",
+  default: "",
+});
+
+const successMessageState = atom({
+  key: "successMessageState",
+  default: "",
+});
+
+const errorMessageState = atom({
+  key: "errorMessageState",
+  default: "",
+});
 
 const UpdateMenuForm = ({ initialData = {}, onSave }) => {
-  console.log("initialData", initialData);
-  const [parentId, setParentId] = useState(initialData.id || "");
-  const [parentName, setParentName] = useState(initialData.label || "");
-
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [dept, setDept] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [parentId, setParentId] = useRecoilState(parentIdState);
+  const [parentName, setParentName] = useRecoilState(parentNameState);
+  const [name, setName] = useRecoilState(nameState);
+  const [slug, setSlug] = useRecoilState(slugState);
+  const [dept, setDept] = useRecoilState(deptState);
+  const [successMessage, setSuccessMessage] =
+    useRecoilState(successMessageState);
+  const [errorMessage, setErrorMessage] = useRecoilState(errorMessageState);
 
   useEffect(() => {
     setParentId(initialData.id || "");
     setParentName(initialData.label || "");
-  }, [initialData]);
+  }, [initialData, setParentId, setParentName]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await onSave({ name, slug, parent_id: parentId, order: dept });
       setSuccessMessage("Menu saved successfully!");
+      setErrorMessage(""); // Clear any previous error message
     } catch (error) {
       console.error("Error saving menu", error);
       setErrorMessage("Failed to save menu.");
+      setSuccessMessage(""); // Clear any previous success message
     }
   };
 

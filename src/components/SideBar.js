@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
+import { atom } from "recoil";
+import { useRecoilState } from "recoil";
 import {
   FaCog,
   FaUsers,
@@ -9,18 +11,26 @@ import {
 } from "react-icons/fa";
 import { Collapse } from "react-collapse";
 
-const SideBar = () => {
-  const [open, setOpen] = useState({
+export const sidebarState = atom({
+  key: "sidebarState",
+  default: {
     systemManagement: true,
     usersGroups: false,
-  });
+  },
+});
+
+const SideBar = () => {
+  const [open, setOpen] = useRecoilState(sidebarState);
 
   const toggle = (section) => {
-    setOpen({ ...open, [section]: !open[section] });
+    setOpen((prevOpen) => ({
+      ...prevOpen,
+      [section]: !prevOpen[section],
+    }));
   };
 
   return (
-    <div className="w-64 h-screen mb-12 bg-gray-800 text-white p-4 rounded-lg flex flex-col">
+    <div className="w-64 hidden lg:block h-screen mb-12 bg-gray-800 text-white p-4 rounded-lg flex flex-col">
       <h2 className="text-xl font-semibold mb-4">Systems</h2>
       <div
         className={`mb-4 ${
@@ -40,19 +50,19 @@ const SideBar = () => {
         </div>
         <Collapse isOpened={open.systemManagement}>
           <ul className="space-y-1">
-            <li className="flex text-sm items-center space-x-2 hover:bg-green-600 hover:text-white p-2 rounded-lg cursor-pointer transition-colors">
+            <li className="flex text-sm items-center space-x-2 hover:bg-green-400 hover:text-white p-2 rounded-lg cursor-pointer transition-colors">
               <FaCode />
               <span>System Code</span>
             </li>
-            <li className="flex text-sm  items-center space-x-2 hover:bg-green-600 hover:text-white p-2 rounded-lg cursor-pointer transition-colors">
+            <li className="flex text-sm items-center space-x-2 hover:bg-green-400 hover:text-white p-2 rounded-lg cursor-pointer transition-colors">
               <FaSlidersH />
               <span>Properties</span>
             </li>
-            <li className="flex text-sm items-center space-x-2 hover:bg-green-600 hover:text-white p-2 rounded-lg cursor-pointer transition-colors">
+            <li className="flex text-sm items-center space-x-2 hover:bg-green-400 hover:text-white p-2 rounded-lg cursor-pointer transition-colors">
               <FaList />
               <span>Menus</span>
             </li>
-            <li className="flex text-sm items-center space-x-2 hover:bg-green-600 hover:text-white p-2 rounded-lg cursor-pointer transition-colors">
+            <li className="flex text-sm items-center space-x-2 hover:bg-green-400 hover:text-white p-2 rounded-lg cursor-pointer transition-colors">
               <FaCloud />
               <span>API List</span>
             </li>
@@ -70,7 +80,7 @@ const SideBar = () => {
         >
           <div className="flex items-center space-x-2">
             <FaUsers />
-            <span className=" text-sm font-normal">Users & Groups</span>
+            <span className="text-sm font-normal">Users & Groups</span>
           </div>
         </div>
         <Collapse isOpened={open.usersGroups}>
