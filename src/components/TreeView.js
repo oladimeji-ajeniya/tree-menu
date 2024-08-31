@@ -15,7 +15,6 @@ import CustomDropdown from "./CustomDropdown";
 const TreeView = () => {
   const [expandedNodes, setExpandedNodes] = useState(new Set());
   const [hoveredNode, setHoveredNode] = useState(null);
-  const [selectedNode, setSelectedNode] = useState(null);
   const [systemManagement, setSystemManagement] = useState(null);
   const [treeData, setTreeData] = useState([]);
   const [isTreeVisible, setIsTreeVisible] = useState(false);
@@ -86,17 +85,14 @@ const TreeView = () => {
 
   const handleNodeClick = (node) => {
     setActiveForm({ type: "edit", data: node });
-    setSelectedNode(node);
   };
 
   const handleCreateNewChildNode = (node) => {
     setActiveForm({ type: "createChild", data: node });
-    setSelectedNode(node);
   };
 
   const handleCreateNewNode = () => {
     setActiveForm({ type: "addNew" });
-    setSelectedNode(null);
   };
 
   const handleSave = async (formData) => {
