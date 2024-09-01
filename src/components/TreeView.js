@@ -14,29 +14,29 @@ import CustomDropdown from "./CustomDropdown";
 
 const TreeView = () => {
   const [expandedNodes, setExpandedNodes] = useState(new Set());
-  const [hoveredNode, setHoveredNode] = useState(null);
-  const [systemManagement, setSystemManagement] = useState(null);
+  const [hoveredNode, setOnHoveredNode] = useState(null);
+  const [menuOptions, setMenuOptions] = useState(null);
   const [treeData, setTreeData] = useState([]);
   const [isTreeVisible, setIsTreeVisible] = useState(false);
   const [activeForm, setActiveForm] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchSystemManagement = async () => {
+    const fetchAllParentMenus = async () => {
       setLoading(true);
       try {
         const response = await api.get("/menus/top-level");
-        setSystemManagement(response.data);
+        setMenuOptions(response.data);
       } catch (error) {
-        console.error("Error fetching System Management data", error);
+        console.error("Error fetching top menu options", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchSystemManagement();
+    fetchAllParentMenus();
   }, []);
 
-  const fetchData = async (menuId) => {
+  const fetchParentMenuById = async (menuId) => {
     setLoading(true);
     try {
       const response = await api.get(`/menus/${menuId}`);
@@ -50,10 +50,10 @@ const TreeView = () => {
     }
   };
 
-  const handleSelectChange = (event) => {
+  const selectMenuChange = (event) => {
     const selectedMenuId = event.id;
     if (selectedMenuId && selectedMenuId !== "new-menu") {
-      fetchData(selectedMenuId);
+      fetchParentMenuById(selectedMenuId);
       setIsTreeVisible(true);
     } else {
       setTreeData([]);
@@ -75,15 +75,23 @@ const TreeView = () => {
 
   const expandAll = () => {
     const collectLabels = (nodes) => {
-      return nodes.reduce((acc, node) => {
-        acc.add(node.label);
+      // Initialize an array to accumulate labels
+      let labels = [];
+
+      // loop over each node
+      nodes.forEach((node) => {
+        labels.push(node.label);
         if (node.children) {
-          collectLabels(node.children).forEach((label) => acc.add(label));
+          labels = labels.concat(collectLabels(node.children));
         }
-        return acc;
-      }, new Set());
+      });
+
+      return labels;
     };
-    setExpandedNodes(collectLabels(treeData));
+
+    // Collect all labels from the treeData and convert them to a Set to get uniqueness
+    const allLabels = collectLabels(treeData);
+    setExpandedNodes(new Set(allLabels));
   };
 
   const collapseAll = () => {
@@ -98,17 +106,17 @@ const TreeView = () => {
     setActiveForm({ type: "createChild", data: node });
   };
 
-  const handleCreateNewNode = () => {
+  const addNewMenuNode = () => {
     setActiveForm({ type: "addNew" });
   };
 
-  const handleSave = async (formData) => {
+  const saveMenuNode = async (formData) => {
     setLoading(true);
     try {
       const response = await api.post("/menus", formData);
       if (response.data.id) {
         const response = await api.get("/menus/top-level");
-        setSystemManagement(response.data);
+        setMenuOptions(response.data);
       }
     } catch (error) {
       console.error("Error saving data", error);
@@ -122,14 +130,14 @@ const TreeView = () => {
     if (!activeForm) return null;
 
     const formProps = {
-      onSave: handleSave,
+      onSave: saveMenuNode,
       initialData: activeForm.data,
     };
 
     const formComponents = {
       edit: <MenuForm {...formProps} />,
       createChild: <UpdateMenuForm {...formProps} />,
-      addNew: <AddMenu onSave={handleSave} />,
+      addNew: <AddMenu onSave={saveMenuNode} />,
     };
 
     return (
@@ -145,8 +153,8 @@ const TreeView = () => {
     return (
       <div
         className="relative mt-4"
-        onMouseEnter={() => setHoveredNode(node.label)}
-        onMouseLeave={() => setHoveredNode(null)}
+        onMouseEnter={() => setOnHoveredNode(node.label)}
+        onMouseLeave={() => setOnHoveredNode(null)}
       >
         {level > 0 && (
           <>
@@ -228,9 +236,9 @@ const TreeView = () => {
           <div className="mb-4 sm:p-3 md:w-2/5 lg:w-2/5 xl:w-2/5">
             <label className="block text-gray-600 mb-2">Menu</label>
             <CustomDropdown
-              options={systemManagement}
-              onSelect={handleSelectChange}
-              onCreateNew={handleCreateNewNode}
+              options={menuOptions}
+              onSelect={selectMenuChange}
+              onCreateNew={addNewMenuNode}
             />
           </div>
         </div>
