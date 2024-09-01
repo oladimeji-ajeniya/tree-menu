@@ -56,11 +56,11 @@ const UpdateMenuForm = ({ initialData = {}, onSave }) => {
     try {
       await onSave({ name, slug, parent_id: parentId, order: dept });
       setSuccessMessage("Menu saved successfully!");
-      setErrorMessage(""); // Clear any previous error message
+      setErrorMessage("");
     } catch (error) {
       console.error("Error saving menu", error);
       setErrorMessage("Failed to save menu.");
-      setSuccessMessage(""); // Clear any previous success message
+      setSuccessMessage("");
     }
   };
 

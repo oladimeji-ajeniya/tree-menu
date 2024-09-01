@@ -11,11 +11,6 @@ const treeDataState = atom({
   default: [],
 });
 
-const isLoadingState = atom({
-  key: "isLoadingState",
-  default: true,
-});
-
 const errorState = atom({
   key: "errorState",
   default: null,
@@ -33,23 +28,19 @@ const sidebarOpenState = atom({
 
 const MenuPage = () => {
   const [treeData, setTreeData] = useRecoilState(treeDataState);
-  const [isLoading, setIsLoading] = useRecoilState(isLoadingState);
   const [error, setError] = useRecoilState(errorState);
   const [shouldRefetch, setShouldRefetch] = useRecoilState(shouldRefetchState);
   const [sidebarOpen, setSidebarOpen] = useRecoilState(sidebarOpenState);
 
   const fetchTreeData = useCallback(async () => {
-    setIsLoading(true);
     try {
       const { data } = await api.get("/get-collasable-menus");
       setTreeData(data);
       setError(null);
     } catch (error) {
       setError(error);
-    } finally {
-      setIsLoading(false);
     }
-  }, [setTreeData, setError, setIsLoading]);
+  }, [setTreeData, setError]);
 
   useEffect(() => {
     fetchTreeData();
@@ -64,7 +55,6 @@ const MenuPage = () => {
     }
   };
 
-  if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading data</div>;
 
   return (
