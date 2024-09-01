@@ -24,6 +24,7 @@ const TreeView = () => {
     const fetchSystemManagement = async () => {
       try {
         const response = await api.get("/menus/top-level");
+        console.log("response.data", response.data);
         setSystemManagement(response.data);
       } catch (error) {
         console.error("Error fetching System Management data", error);

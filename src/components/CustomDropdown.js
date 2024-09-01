@@ -54,8 +54,8 @@ const CustomDropdown = ({ options, onSelect, onCreateNew }) => {
       {isOpen && (
         <div className="absolute mt-2 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10">
           <ul className="max-h-60 overflow-y-auto">
-            {options.length > 0 ? (
-              options.map((option) => (
+            {options?.length > 0 ? (
+              options?.map((option) => (
                 <li
                   key={option.id}
                   onClick={() => handleOptionClick(option)}
