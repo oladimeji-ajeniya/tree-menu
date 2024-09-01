@@ -1,13 +1,53 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
+import { useRecoilState } from "recoil";
 import api from "../services/api";
 
+import { atom } from "recoil";
+
+export const nameState = atom({
+  key: "nameState",
+  default: "",
+});
+
+export const parentIdState = atom({
+  key: "parentIdState",
+  default: "",
+});
+
+export const orderState = atom({
+  key: "orderState",
+  default: 0,
+});
+
+export const menusState = atom({
+  key: "menusState",
+  default: [],
+});
+
+export const successMessageState = atom({
+  key: "successMessageState",
+  default: "",
+});
+
+export const errorMessageState = atom({
+  key: "errorMessageState",
+  default: "",
+});
+
+export const loadingState = atom({
+  key: "loadingState",
+  default: false,
+});
+
 const AddMenu = ({ onAdd }) => {
-  const [name, setName] = useState("");
-  const [parentId, setParentId] = useState("");
-  const [order, setOrder] = useState(0);
-  const [menus, setMenus] = useState([]);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [name, setName] = useRecoilState(nameState);
+  const [parentId, setParentId] = useRecoilState(parentIdState);
+  const [order, setOrder] = useRecoilState(orderState);
+  const [menus, setMenus] = useRecoilState(menusState);
+  const [successAddMenuMessage, setSuccessMessage] =
+    useRecoilState(successMessageState);
+  const [errorMessage, setErrorMessage] = useRecoilState(errorMessageState);
+  const [loading, setLoading] = useRecoilState(loadingState);
 
   useEffect(() => {
     const fetchMenus = async () => {
@@ -21,10 +61,11 @@ const AddMenu = ({ onAdd }) => {
     };
 
     fetchMenus();
-  }, []);
+  }, [setMenus, setErrorMessage]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const newMenu = { name, parent_id: parentId, order };
       await api.post("/menus", newMenu);
@@ -35,6 +76,8 @@ const AddMenu = ({ onAdd }) => {
       console.error("Error adding menu", error);
       setSuccessMessage("");
       setErrorMessage("Failed to add menu.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -80,20 +123,25 @@ const AddMenu = ({ onAdd }) => {
 
         <button
           type="submit"
-          className="w-full py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600"
+          className={`w-full py-2 rounded-full ${
+            loading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-500 text-white hover:bg-blue-600"
+          }`}
+          disabled={loading}
         >
-          Add Menu
+          {loading ? <span>Loading...</span> : <span>Add Menu</span>}
         </button>
       </form>
-      {successMessage && (
+      {successAddMenuMessage && (
         <div
           className={`mt-4 p-4 rounded ${
-            successMessage.includes("Failed")
+            successAddMenuMessage.includes("Failed")
               ? "bg-red-100 text-red-700"
               : "bg-green-100 text-green-700"
           }`}
         >
-          {successMessage}
+          {successAddMenuMessage}
         </div>
       )}
       {errorMessage && (

@@ -19,6 +19,7 @@ const TreeView = () => {
   const [treeData, setTreeData] = useState([]);
   const [isTreeVisible, setIsTreeVisible] = useState(false);
   const [activeForm, setActiveForm] = useState(null);
+  const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -52,6 +53,7 @@ const TreeView = () => {
 
   const selectMenuChange = (event) => {
     const selectedMenuId = event.id;
+
     if (selectedMenuId && selectedMenuId !== "new-menu") {
       fetchParentMenuById(selectedMenuId);
       setIsTreeVisible(true);
@@ -99,14 +101,18 @@ const TreeView = () => {
   };
 
   const handleNodeClick = (node) => {
+    setShowForm(true);
     setActiveForm({ type: "edit", data: node });
   };
 
   const handleCreateNewChildNode = (node) => {
+    setShowForm(true);
     setActiveForm({ type: "createChild", data: node });
   };
 
   const addNewMenuNode = () => {
+    setIsTreeVisible(true);
+    setShowForm(true);
     setActiveForm({ type: "addNew" });
   };
 
@@ -290,7 +296,7 @@ const TreeView = () => {
               </div>
             </div>
 
-            {renderActiveForm()}
+            {showForm && renderActiveForm()}
           </div>
         )
       )}
